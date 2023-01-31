@@ -7,7 +7,13 @@ import { AppService } from "./app.service";
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  /* c8 ignore start */
+  constructor(/* c8 ignore stop */
+
+    private readonly appService: AppService
+  ) {
+    /* c8 ignore stop */
+  }
 
   @MessagePattern({ cmd: "check_health" })
   checkHealth(): Observable<HealthCheckResult> {

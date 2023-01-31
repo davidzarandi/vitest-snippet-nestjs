@@ -1,45 +1,34 @@
-import { describe, expect, beforeEach, afterEach, it, vi } from "vitest";
-import { Test, TestingModule } from "@nestjs/testing";
-import { HealthCheckService, HttpHealthIndicator, TerminusModule } from "@nestjs/terminus";
-import { HttpModule } from "@nestjs/axios";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { MockHealthCheckService, mockHealthCheckResult } from "./__mock__/healthCheckService.mock";
+import { MockHttpHealthIndicator } from "./__mock__/httpHealthIndicator.mock";
 
 import { AppService } from "./app.service";
 
-describe("AppService", () => {
-  let appService: AppService;
-  const http: Partial<HttpHealthIndicator> = { pingCheck: vi.fn() };
-  const health: Partial<HealthCheckService> = { check: vi.fn() };
-
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      imports: [TerminusModule, HttpModule],
-      providers: [AppService, HealthCheckService, HttpHealthIndicator],
-    })
-      .overrideProvider(HealthCheckService)
-      .useValue(health)
-      .overrideProvider(HttpHealthIndicator)
-      .useValue(http)
-      .compile();
-
-    appService = module.get<AppService>(AppService);
-  });
-
-  afterEach(() => {
+describe("AppService class", () => {
+  beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("should be defined", () => {
-    expect(appService).toBeDefined();
+  describe("when given injections", () => {
+    it("should create an instance", () => {
+      expect(new AppService(MockHealthCheckService, MockHttpHealthIndicator)).toBeDefined();
+    });
+
+    it("should return a checkHealth function", () => {
+      const appService = new AppService(MockHealthCheckService, MockHttpHealthIndicator);
+      expect(appService.checkHealth).toBeDefined();
+    });
   });
 
-  describe("checkHealth", () => {
-    it("should call the health check functions", () => {
-      health.check = vi.fn().mockImplementation((callbackArray: (() => void)[]) => {
-        callbackArray.forEach((cb) => cb());
-        return Promise.resolve("OK");
+  describe("when checkHealth called", () => {
+    it("should return with a valid result", () => {
+      const appService = new AppService(MockHealthCheckService, MockHttpHealthIndicator);
+
+      appService.checkHealth().subscribe((data) => {
+        expect(data).toBe(mockHealthCheckResult);
+        expect(MockHealthCheckService.check).toBeCalledTimes(1);
       });
-      appService.checkHealth();
-      expect(http.pingCheck).toBeCalledTimes(1);
     });
   });
 });

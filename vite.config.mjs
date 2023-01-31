@@ -1,4 +1,5 @@
 import { defineConfig } from "vite";
+import { configDefaults } from "vitest/config";
 import { VitePluginNode as vitePluginNode } from "vite-plugin-node";
 import tsconfigPaths from "vite-tsconfig-paths";
 
@@ -9,8 +10,9 @@ export default defineConfig({
   test: {
     passWithNoTests: true,
     coverage: {
-      provider: "istanbul",
+      provider: "c8",
       reporter: ["lcov", "text"],
+      exclude: [...configDefaults.coverage.exclude, "**/*.mock.ts"],
     },
   },
   plugins: [
@@ -18,6 +20,9 @@ export default defineConfig({
       adapter: "nest",
       appPath: "./src/index.ts",
       tsCompiler: "swc",
+      swcOptions: {
+        sourceMaps: true,
+      },
     }),
     tsconfigPaths({
       projects: ["./tsconfig.json"],
